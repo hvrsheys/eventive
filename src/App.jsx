@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import './App.css'
+import { searchGuests } from './utils/searchGuests'
 import venuePhoto from './assets/venue-dinner.jpeg'
 import seats from './data/seats.json'
 import {
@@ -51,18 +52,8 @@ function App() {
   }, [])
 
   const filteredGuests = useMemo(() => {
-    if (!normalizedQuery) {
-      return []
-    }
-
-    return seats
-      .filter((guest) => {
-        const nameMatch = guest.name.toLowerCase().includes(normalizedQuery)
-        const companyMatch = guest.company.toLowerCase().includes(normalizedQuery)
-        return nameMatch || companyMatch
-      })
-      .slice(0, 8)
-  }, [normalizedQuery])
+    return searchGuests(query, seats)
+  }, [query])
 
   const selectedTable = selectedGuest ? tables[selectedGuest.table] : null
   const guidePath = selectedTable
