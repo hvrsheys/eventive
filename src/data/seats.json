@@ -142,5 +142,11 @@
     "name": "Hakim Ismail",
     "company": "TerraLink Group",
     "table": 8
+  },
+  {
+  "id": 25,
+  "name": "Test Deployment Guest",
+  "company": "Eventive QA",
+  "table": 2
   }
 ]
