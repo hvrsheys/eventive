@@ -1,8 +1,6 @@
 const STORAGE_KEY = 'eventive-attendance-records'
 const EVENT_TIME_ZONE = 'Asia/Kuala_Lumpur'
 
-const getWebhookUrl = () => import.meta.env.VITE_ATTENDANCE_WEBHOOK_URL?.trim()
-
 const formatMalaysiaTimestamp = (date) => {
   const parts = new Intl.DateTimeFormat('en-CA', {
     timeZone: EVENT_TIME_ZONE,
@@ -73,19 +71,24 @@ export const recordAttendance = (guest, options = {}) => {
     options.onSheetStatusChange?.({ record, sheetStatus })
   }
 
-  const webhookUrl = getWebhookUrl()
-
-  if (!webhookUrl) {
-    setSheetStatus('not-configured')
-    return { record, sheetStatus: 'not-configured' }
-  }
-
-  fetch(webhookUrl, {
+  fetch('/api/attendance', {
     method: 'POST',
-    mode: 'no-cors',
+    headers: {
+      'Content-Type': 'application/json',
+    },
     body: JSON.stringify(record),
   })
-    .then(() => {
+    .then((response) => {
+      if (response.status === 503) {
+        setSheetStatus('not-configured')
+        return
+      }
+
+      if (!response.ok) {
+        setSheetStatus('failed')
+        return
+      }
+
       setSheetStatus('sent')
     })
     .catch(() => {
