@@ -1,9 +1,13 @@
 # Google Sheets Attendance Setup
 
 Use Google Sheets for the live attendance record. The app also keeps a local
-browser backup in `localStorage` before it sends each row. The UI does not wait
-for Google Sheets before showing the guest map; sheet sync runs in the
-background so check-in stays fast.
+browser backup in `localStorage` before it sends each row. The React frontend
+sends attendance records to `/api/attendance`, which is a Vercel Serverless
+Function. The backend API forwards attendance records to Google Sheets using the
+private `GOOGLE_SHEETS_WEBHOOK_URL` environment variable.
+
+The UI does not wait for Google Sheets before showing the guest map; sheet sync
+runs in the background so check-in stays fast.
 
 1. Create a Google Sheet and name the first tab `Attendance`.
 2. In the sheet, open `Extensions > Apps Script`.
@@ -47,13 +51,30 @@ function doPost(e) {
 6. Set `Execute as` to `Me`.
 7. Set `Who has access` to `Anyone`.
 8. Copy the web app URL.
-9. Create `.env.local` in this project and add:
+9. Add the copied URL to Vercel as an environment variable:
 
 ```env
-VITE_ATTENDANCE_WEBHOOK_URL=https://script.google.com/macros/s/YOUR_DEPLOYMENT_ID/exec
+GOOGLE_SHEETS_WEBHOOK_URL=https://script.google.com/macros/s/YOUR_DEPLOYMENT_ID/exec
 ```
 
-10. Restart the Vite dev server after editing `.env.local`.
+10. Redeploy the Vercel project so the serverless API can read the new variable.
+
+## Attendance Flow
+
+```text
+React frontend
+  -> /api/attendance
+  -> Google Sheets Apps Script webhook
+  -> Attendance sheet
+```
+
+The browser still saves a `localStorage` backup before syncing. If Google Sheets
+is not configured or the sync fails, the guest can still continue to the seat
+map and staff can review the local backup later.
+
+When developing locally with `npm run dev`, `/api/attendance` may not run because
+Vite does not automatically start Vercel Serverless Functions. The route works
+after deployment on Vercel. Use Vercel CLI only if local API testing is needed.
 
 ## Timestamp
 
